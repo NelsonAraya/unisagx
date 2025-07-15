@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="{{ asset('plugins/chosen/chosen.css')}}">
     <link rel="stylesheet" href="{{ asset('plugins/chosen/style.css')}}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.22.2/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="//cdn.datatables.net/2.3.2/css/dataTables.dataTables.min.css">
     <link rel="shortcut icon" href="assets/images/favicon.svg" type="image/x-icon">
     @yield('css')
 </head>
@@ -48,6 +49,7 @@
     <script src="{{ asset('plugins/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('plugins/main.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.22.2/dist/sweetalert2.all.min.js"></script>
+    <script src="//cdn.datatables.net/2.3.2/js/dataTables.min.js"></script>
     @yield('js')
 </body>
 

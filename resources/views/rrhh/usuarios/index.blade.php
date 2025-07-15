@@ -18,34 +18,23 @@
                                 <a href="{{ route('usuarios.create') }}" class="btn btn-success" role="button">Nuevo Usuario</a>
                             </div>
                             <div class="card-body">
-                               <table class="table table-striped" id="tbl_usuario">
-                                    <thead>
-                                        <tr>
-                                            <th>Rut</th>
-                                            <th>Nombres</th>
-                                            <th>Paterno</th>
-                                            <th>Materno</th>
-                                            <th>Estado</th>
-                                            <th>Ver</th>
-                                        </tr>
-                                    </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>17096233-8</td>
-                                        <td>Nelson Antonio</td>
-                                        <td>Araya</td>
-                                        <td>Vacca</td>
-                                        <td>
-                                            <span class="badge bg-success">Activo</span>
-                                        </td>
-                                        <td> 
-                                            <a href="#" class="btn btn-info justify-content-center">
-		                                        <span class="bi bi-person" aria-hidden="true"></span>
-		                                    </a>
-                                        </td>
-                                    </tr> 
-                                </tbody>
-                               </table>    
+                                <div class="table-responsive">
+                                    <table class="table table-striped" id="tbl_usuario">
+                                            <thead>
+                                                <tr>
+                                                    <th>Rut</th>
+                                                    <th>Nombres</th>
+                                                    <th>Paterno</th>
+                                                    <th>Materno</th>
+                                                    <th>Estado</th>
+                                                    <th>Ver</th>
+                                                </tr>
+                                            </thead>
+                                        <tbody>
+                                    
+                                        </tbody>
+                                    </table>
+                                </div>    
                             </div>
                         </div>
                 </section>
@@ -53,17 +42,37 @@
 @endsection
 @section('js')
     <script>
-        let dataTable = new simpleDatatables.DataTable("#tbl_usuario",{
-            perPageSelect: false,
-            perPage: 10,           // Define cuántos registros quieres mostrar por página
-            labels: {
-                placeholder: "Buscar...",
-                perPage: "Mostrar {select} registros por página",
-                noRows: "No se encontraron registros",
-                info: "Mostrando {start} a {end} de {rows} registros",
+        $('#tbl_usuario').DataTable({
+            "ajax":'{{ route('usuarios.all') }}',
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json"
             },
-            sortable: false
-        });
-        
+            "ordering": false,
+            "columns": [
+                { "data": "rut" },
+                { "data": "nombres" },
+                { "data": "apellidop" },
+                { "data": "apellidom" },
+                { "data": "estado.nombre", 
+                  "render": function(data, type, row, meta) {
+                        let color = 'secondary'; // gris por defecto
+                        if(data.toLowerCase() === 'activo') color = 'success';
+                        else if(data.toLowerCase() === 'inactivo') color = 'danger';
+              
+                    return `<span class="badge bg-${color}">${data}</span>`;
+                }
+                },
+                {
+                    "targets": -1,
+                    "data": null,
+                    "render": function(data, type, row) {
+                        let template = `<a href="{{ route('usuarios.edit', 'xid') }}" class="btn btn-info">
+                                            <i class="bi bi-eye"></i>
+                                        </a>`;
+                        return template.replace('xid', row.id);
+                    }
+                }
+            ],
+        });       
     </script> 
 @endsection

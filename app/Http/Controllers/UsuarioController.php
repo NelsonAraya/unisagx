@@ -18,6 +18,7 @@ class UsuarioController extends Controller
      */
     public function index()
     {
+
         return view('rrhh.usuarios.index');
     }
 
@@ -103,6 +104,19 @@ class UsuarioController extends Controller
             }
     }
 
+    public function getUsuariosData()
+    {
+        $usuarios = usuario::with('estado')->get();
+
+        // Opcionalmente, formateas el rut u otros campos aquí
+        $usuarios->transform(function($usuario) {
+            $usuario->rut = $usuario->rutUsuario();  // Tu método para formatear RUT
+            return $usuario;
+        });
+
+        return response()->json(['data' => $usuarios]);
+    }
+
     /**
      * Display the specified resource.
      */
@@ -116,7 +130,24 @@ class UsuarioController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $usuario = usuario::findOrFail($id);
+
+        $sexo = sexo::pluck('nombre', 'id');
+        $afp = afps::pluck('nombre', 'id');
+        $prevision = previsiones::pluck('nombre', 'id');
+        $civil = estado_civiles::pluck('nombre', 'id');
+        $nacionalidad = nacionalidad::pluck('nombre', 'id');
+        $profesion = profesiones::pluck('nombre', 'id');
+
+    return view('rrhh.usuarios.edit', compact(
+        'usuario', 
+        'sexo', 
+        'afp', 
+        'prevision', 
+        'civil', 
+        'nacionalidad', 
+        'profesion'
+    ));
     }
 
     /**

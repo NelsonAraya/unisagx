@@ -7,5 +7,6 @@ Route::get('/', function () {
 });
 
 Route::prefix('admin')->group(function () {
+        Route::get('usuarios/all',[UsuarioController::class,'getUsuariosData'])->name('usuarios.all');
         Route::resource('usuarios',UsuarioController::class);
 });
