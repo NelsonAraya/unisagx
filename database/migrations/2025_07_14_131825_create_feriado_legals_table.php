@@ -19,13 +19,13 @@ return new class extends Migration
             $table->date('fecha_termino');
             $table->integer('cantidad_dias');
             $table->integer('dias_progresivos')->nullable();
-            $table->integer('dias_adicionales')->unsigned();
+            $table->integer('dias_adicionales')->nullable();
             $table->enum('fuera_ciudad', ['S', 'N'])->default('N');
             $table->string('observacion')->nullable();
             $table->integer('estado_id')->unsigned();
             $table->string('motivo_rechazo')->nullable();
-            $table->integer('autoriza_id')->unsigned();
-            $table->integer('sege_id')->unsigned();
+            $table->integer('autoriza_id')->unsigned()->nullable();
+            $table->integer('sege_id')->unsigned()->nullable();
             // Foreign keys
             $table->foreign('usuario_id')->references('id')->on('usuarios');
             $table->foreign('autoriza_id')->references('id')->on('usuarios');

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->increments('id');
             $table->integer('permiso_id')->unsigned();
             $table->date('fecha');
-            $table->enum('bloque', ['MAÑANA', 'TARDE']);
+            $table->enum('bloque', ['MAÑANA', 'TARDE','COMPLETO']);
             // Foreign keys
             $table->foreign('permiso_id')->references('id')->on('permisos');
             $table->timestamps();
