@@ -14,7 +14,21 @@ use App\Models\permiso_tipo;
 use App\Models\permiso;
 use App\Models\permiso_bloque;
 use App\Models\feriado_legal;
-use Carbon\Carbon;
+use App\Models\licencia_medica_tipos;
+use App\Models\licencia_medica_reposo;
+use App\Models\licencia_medica_lugar_reposo;
+use App\Models\licencia_medica;
+use App\Models\anotaciones_tipo;
+use App\Models\anotaciones;
+use App\Models\estado_usuarios;
+use App\Models\bancos;
+use App\Models\banco_cuentas;
+use App\Models\cuenta_usuarios;
+use App\Models\orden_trabajo_tipo;
+use App\Models\departamentos;
+use App\Models\centro_costo;
+use App\Models\orden_trabajo;
+
 class UsuarioController extends Controller
 {
     /**
@@ -141,9 +155,25 @@ class UsuarioController extends Controller
         $prevision = previsiones::pluck('nombre', 'id');
         $civil = estado_civiles::pluck('nombre', 'id');
         $nacionalidad = nacionalidad::pluck('nombre', 'id');
-        $profesion = profesiones::pluck('nombre', 'id');
-
+        $profesion = profesiones::selectRaw("CONCAT(nombre, ' - (', categoria, ')') AS nombre_completo, id")
+                ->pluck('nombre_completo', 'id');
         $permiso_tipo = permiso_tipo::pluck('nombre', 'id');
+        $licencia_tipo = licencia_medica_tipos::pluck('nombre','id');
+        $licencia_reposo = licencia_medica_reposo::pluck('nombre','id');
+        $licencia_lugar_reposo = licencia_medica_lugar_reposo::pluck('nombre','id');
+        $anotacion_tipo = anotaciones_tipo::pluck('nombre','id');
+        $estado_usuario = estado_usuarios::pluck('nombre','id');
+        $banco = bancos::pluck('nombre','id');
+        $banco_cuenta = banco_cuentas::pluck('nombre','id');
+        $departamento = departamentos::pluck('nombre','id');
+        $tipo_ot = orden_trabajo_tipo::pluck('nombre','id');
+        $centro_costo = centro_costo::selectRaw("CONCAT(nombre, ' - (', codigo, ')') AS nombre_completo, id")
+                ->pluck('nombre_completo', 'id');
+        $usu = usuario::where('estado_id', 1)
+                ->get()
+                ->mapWithKeys(function ($u) {
+                    return [$u->id => $u->nombreCompleto];
+                });
 
     return view('rrhh.usuarios.edit', compact(
         'usuario', 
@@ -153,7 +183,18 @@ class UsuarioController extends Controller
         'civil', 
         'nacionalidad', 
         'profesion',
-        'permiso_tipo'
+        'permiso_tipo',
+        'licencia_tipo',
+        'licencia_reposo',
+        'licencia_lugar_reposo',
+        'anotacion_tipo',
+        'usu',
+        'estado_usuario',
+        'banco',
+        'banco_cuenta',
+        'departamento',
+        'tipo_ot',
+        'centro_costo'
     ));
     }
 
@@ -162,7 +203,46 @@ class UsuarioController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        
+        try {
+            
+            $usuario = usuario::findOrFail($id);
+            $usuario->nombres = strtolower($request->nombres);
+            $usuario->apellidop = strtolower($request->paterno);
+            $usuario->apellidom = strtolower($request->materno);
+            $usuario->fecha_nacimiento = $request->fecha_nacimiento;
+            $usuario->telefono = $request->telefono;
+            $usuario->direccion = strtolower($request->direccion);
+            $usuario->sexo_id = $request->sexo;
+            $usuario->profesion_id = $request->profesion;
+            $usuario->afp_id = $request->afp;
+            $usuario->prevision_id = $request->prevision;
+            $usuario->fecha_ingreso = $request->fecha_ingreso;
+            $usuario->estado_civil_id = $request->estado_civil;
+            $usuario->nacionalidad_id = $request->nacionalidad;
+            $usuario->email = strtolower($request->email);
+            $usuario->email_institucional = strtolower($request->email_institucional);
+            $usuario->estado_id = $request->estado_id;
+
+            $usuario->save();
+            
+        return response()->json(['message' => 'Usuario Actualizado con éxito'], 200);
+        
+        } catch (QueryException $e) {
+            // Error SQL
+            return response()->json([
+                'message' => 'Error al actualizar el usuario',
+                'error' => $e->getMessage() // puedes quitar esto en producción
+            ], 500);
+
+        } catch (\Exception $e) {
+                // Cualquier otro error
+                return response()->json([
+                    'message' => 'Ocurrió un error inesperado',
+                    'error' => $e->getMessage() // puedes quitar esto en producción
+                ], 500);
+        }
+
     }
 
     public function setPermiso(Request $request , string $id)
@@ -172,7 +252,6 @@ class UsuarioController extends Controller
         $permiso->usuario_id = $id;
         $permiso->permiso_tipo_id = $request->permiso_tipo_id;
         $permiso->permiso_estado_id = 1;
-        $permiso->fecha_permiso = now();
         $permiso->motivo = $request->motivo_permiso;
         $permiso->fecha_inicio = $request->fecha_inicio_permiso;
         $permiso->fecha_termino = $request->fecha_termino_permiso;
@@ -215,7 +294,6 @@ class UsuarioController extends Controller
 
             $feriado = new feriado_legal();
             $feriado->usuario_id = $id;
-            $feriado->fecha_ingreso = now();
             $feriado->fecha_inicio = $request->fecha_inicio_vacaciones;
             $feriado->fecha_termino = $request->fecha_termino_vacaciones;
             $feriado->cantidad_dias = $request->cantidad_dias_vacaciones;
@@ -232,6 +310,139 @@ class UsuarioController extends Controller
             // Error SQL
             return response()->json([
                 'message' => 'Error al guardar el Feriado Legal',
+                'error' => $e->getMessage() // puedes quitar esto en producción
+            ], 500);
+
+        } catch (\Exception $e) {
+                // Cualquier otro error
+                return response()->json([
+                    'message' => 'Ocurrió un error inesperado',
+                    'error' => $e->getMessage() // puedes quitar esto en producción
+                ], 500);
+        }
+    }
+
+    public function setLicenciaMedica(Request $request, string $id)
+    {
+        try {
+
+            $licencia = new licencia_medica();
+            $licencia->usuario_id = $id;
+            $licencia->folio = $request->folio_licencia;
+            $licencia->fecha_emision = $request->fecha_emision_licencia;
+            $licencia->fecha_inicio = $request->fecha_inicio_licencia;
+            $licencia->fecha_termino = $request->fecha_termino_licencia;
+            $licencia->medico = $request->medico;
+            $licencia->licencia_tipo_id = $request->licencia_tipo_id;
+            $licencia->licencia_tipo_reposo_id = $request->licencia_tipo_reposo_id;
+            $licencia->licencia_lugar_reposo_id = $request->licencia_lugar_reposo_id;
+            $licencia->estado_id = 1;
+            $licencia->save();
+
+            return response()->json(['message' => 'Licencia Medica guardado con éxito'], 200);
+
+        } catch (QueryException $e) {
+            // Error SQL
+            return response()->json([
+                'message' => 'Error al guardar la Licencia Medica',
+                'error' => $e->getMessage() // puedes quitar esto en producción
+            ], 500);
+
+        } catch (\Exception $e) {
+                // Cualquier otro error
+                return response()->json([
+                    'message' => 'Ocurrió un error inesperado',
+                    'error' => $e->getMessage() // puedes quitar esto en producción
+                ], 500);
+        }
+    }
+    
+    public function setAnotacion(Request $request, string $id)
+    {
+        try {
+
+           $anotacion = new anotaciones();
+           $anotacion->usuario_id = $id;
+           $anotacion->calificador_id = 17096233; //despues hay que pasarla por el usuario logeado
+           $anotacion->anotacion_tipo_id = $request->anotacion_tipo_id;
+           $anotacion->fecha_anotacion = $request->fecha_anotacion;
+           $anotacion->anotacion = $request->anotacion;
+           $anotacion->estado_id = 1;
+           $anotacion->solicitado_por = $request->solicitado_por;
+           $anotacion->save();
+
+           return response()->json(['message' => 'Anotacion guardado con éxito'], 200);
+
+        } catch (QueryException $e) {
+            // Error SQL
+            return response()->json([
+                'message' => 'Error al guardar la Anotacion',
+                'error' => $e->getMessage() // puedes quitar esto en producción
+            ], 500);
+
+        } catch (\Exception $e) {
+                // Cualquier otro error
+                return response()->json([
+                    'message' => 'Ocurrió un error inesperado',
+                    'error' => $e->getMessage() // puedes quitar esto en producción
+                ], 500);
+        }
+    }
+
+    public function setCuentaBancaria(Request $request, string $id)
+    {
+        try {
+
+           $cbancaria = new cuenta_usuarios();
+           $cbancaria->usuario_id = $id;
+           $cbancaria->banco_id = $request->banco;
+           $cbancaria->banco_cuenta_tipo_id = $request->banco_cuenta;
+           $cbancaria->numero_cuenta = $request->numero_cuenta;
+           $cbancaria->save();
+
+           return response()->json(['message' => 'Cuenta Bancaria guardada con éxito'], 200);
+
+        } catch (QueryException $e) {
+            // Error SQL
+            return response()->json([
+                'message' => 'Error al guardar la Cuenta Bancaria',
+                'error' => $e->getMessage() // puedes quitar esto en producción
+            ], 500);
+
+        } catch (\Exception $e) {
+                // Cualquier otro error
+                return response()->json([
+                    'message' => 'Ocurrió un error inesperado',
+                    'error' => $e->getMessage() // puedes quitar esto en producción
+                ], 500);
+        }
+    }
+
+    public function setOrdenTrabajo(Request $request, string $id)
+    {
+        try {
+
+            $ot = new orden_trabajo();
+            $ot->usuario_id = $id;
+            $ot->fecha_inicio = $request->$fecha_inicio_ot;
+            $ot->fecha_termino = $request->$fecha_termino_ot;
+            $ot->tipo_orden_id = $request->$tipo_orden_id;
+            $ot->jornada = $request->$jornada;
+            $ot->valor_semana = $request->$valor_semana;
+            $ot->valor_semana_extension = $request->$valor_semana_extension;
+            $ot->valor_nocturno = $request->$valor_nocturno;
+            $ot->valor_finde_semana = $request->$valor_finde_semana;
+            $ot->monto_contrato = $request->$monto_contrato;
+            $ot->fondo_id = $request->$fondo_id;
+            $ot->profesion_id = $request->$profesion_id;
+          
+
+           return response()->json(['message' => 'Orden de Trabajo guardada con éxito'], 200);
+
+        } catch (QueryException $e) {
+            // Error SQL
+            return response()->json([
+                'message' => 'Error al guardar la Orden de Trabajo',
                 'error' => $e->getMessage() // puedes quitar esto en producción
             ], 500);
 

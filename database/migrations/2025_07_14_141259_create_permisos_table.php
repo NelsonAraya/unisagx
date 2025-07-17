@@ -16,7 +16,7 @@ return new class extends Migration
             $table->integer('usuario_id')->unsigned();
             $table->integer('permiso_tipo_id')->unsigned();
             $table->integer('permiso_estado_id')->unsigned();
-            $table->date('fecha_permiso');
+            $table->timestamp('fecha_permiso')->useCurrent();
             $table->string('motivo',150);
             $table->date('fecha_inicio');
             $table->date('fecha_termino');

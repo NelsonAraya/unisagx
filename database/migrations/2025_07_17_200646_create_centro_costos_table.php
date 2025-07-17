@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('orden_trabajo_tipos', function (Blueprint $table) {
+        Schema::create('centro_costos', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('nombre', 100);
+            $table->string('nombre',100);
+            $table->string('codigo',10)->unique();
+            $table->enum('estado', ['ACTIVO', 'INACTIVO'])->default('ACTIVO');
             $table->timestamps();
         });
     }
@@ -23,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('orden_trabajo_tipos');
+        Schema::dropIfExists('centro_costos');
     }
 };

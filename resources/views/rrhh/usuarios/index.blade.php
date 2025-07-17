@@ -45,7 +45,7 @@
         $('#tbl_usuario').DataTable({
             "ajax":'{{ route('usuarios.all') }}',
             "language": {
-                "url": "//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json"
+                "url": "https://cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json"
             },
             "ordering": false,
             "columns": [

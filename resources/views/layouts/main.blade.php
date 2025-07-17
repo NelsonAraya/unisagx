@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="{{ asset('plugins/bootstrap.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/iconly/bold.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/perfect-scrollbar/perfect-scrollbar.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/bootstrap-icons/bootstrap-icons.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('plugins/app.css')}}">
     <link rel="stylesheet" href="{{ asset('plugins/chosen/chosen.css')}}">
     <link rel="stylesheet" href="{{ asset('plugins/chosen/style.css')}}">

@@ -7,7 +7,7 @@
         <div class="col-md-3">
             <label class="form-label"><i class="bi bi-file-earmark-bar-graph"></i> Folio</label>
             <div class="form-group position-relative has-icon-right">
-                <input type="number" class="form-control" name="folio" autocomplete="off" required min="0">
+                <input type="number" class="form-control" name="folio_licencia" autocomplete="off" required min="0">
                 <div class="form-control-icon">
                     <i class="bi bi-file-earmark-bar-graph"></i>
                 </div>
@@ -16,23 +16,23 @@
         <!-- Fecha Emision -->
         <div class="col-md-2">
             <label class="form-label"><i class="bi bi-calendar-plus"></i> Fecha de Emisión</label>
-            <input type="date" class="form-control" name="fecha_emision" autocomplete="off" required>
+            <input type="date" class="form-control" name="fecha_emision_licencia" autocomplete="off" required>
         </div>
         <!-- Fecha Inicio -->
         <div class="col-md-2">
             <label class="form-label"><i class="bi bi-calendar-event"></i> Fecha Inicio</label>
-            <input type="date" class="form-control" name="fecha_inicio" autocomplete="off" required>
+            <input type="date" class="form-control" name="fecha_inicio_licencia" autocomplete="off" required>
         </div>
         <!-- Fecha Término -->
         <div class="col-md-2">
             <label class="form-label"><i class="bi bi-calendar-check-fill"></i> Fecha Término</label>
-            <input type="date" class="form-control" name="fecha_termino" autocomplete="off" required>
+            <input type="date" class="form-control" name="fecha_termino_licencia" autocomplete="off" required>
         </div>
         <!-- Medico -->
         <div class="col-md-3">
             <label class="form-label"><i class="bi bi-person-badge"></i> Médico</label>
             <div class="form-group position-relative has-icon-right">
-                <input type="number" class="form-control" name="medico" autocomplete="off" required>
+                <input type="text" class="form-control" name="medico" autocomplete="off" required>
                 <div class="form-control-icon">
                     <i class="bi bi-person-badge"></i>
                 </div>
@@ -41,14 +41,13 @@
 
         <!-- Licencia Tipo ID -->
         <div class="col-md-4">
-            <label class="form-label"><i class="bi bi-journal-text"></i> Tipo de Licencia (Opcional)</label>
-            <select name="licencia_tipo_id" class="form-select">
+            <label class="form-label"><i class="bi bi-journal-text"></i> Tipo de Licencia</label>
+            <select name="licencia_tipo_id" class="form-select" required>
                 <option value="">--Seleccione--</option>
-                {{-- Assuming $tiposLicencia is passed from the backend 
-                @foreach($tiposLicencia as $key => $value)
+                @foreach($licencia_tipo as $key => $value)
                     <option value="{{ $key }}"> {{ $value }}</option>
                 @endforeach
-                --}}
+                
             </select>
         </div>
         <!-- Licencia Tipo Reposo ID -->
@@ -56,11 +55,10 @@
             <label class="form-label"><i class="bi bi-hospital"></i> Tipo de Reposo</label>
             <select name="licencia_tipo_reposo_id" class="form-select" required>
                 <option value="">--Seleccione--</option>
-                {{-- Assuming $tiposReposo is passed from the backend 
-                @foreach($tiposReposo as $key => $value)
+                @foreach($licencia_reposo as $key => $value)
                     <option value="{{ $key }}"> {{ $value }}</option>
                 @endforeach
-                --}}
+                
             </select>
         </div>
         <!-- Licencia Lugar Reposo ID -->
@@ -68,11 +66,9 @@
             <label class="form-label"><i class="bi bi-geo-alt"></i> Lugar de Reposo</label>
             <select name="licencia_lugar_reposo_id" class="form-select" required>
                 <option value="">--Seleccione--</option>
-                {{-- Assuming $lugaresReposo is passed from the backend 
-                @foreach($lugaresReposo as $key => $value)
+                @foreach($licencia_lugar_reposo as $key => $value)
                     <option value="{{ $key }}"> {{ $value }}</option>
                 @endforeach
-                --}}
             </select>
         </div>
 

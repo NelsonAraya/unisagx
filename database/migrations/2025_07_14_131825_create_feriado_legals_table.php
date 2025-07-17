@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('feriado_legals', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('usuario_id')->unsigned();
-            $table->date('fecha_ingreso');
+            $table->timestamp('fecha_ingreso')->useCurrent();
             $table->date('fecha_inicio');
             $table->date('fecha_termino');
             $table->integer('cantidad_dias');
