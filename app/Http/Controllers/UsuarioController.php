@@ -28,6 +28,8 @@ use App\Models\orden_trabajo_tipo;
 use App\Models\departamentos;
 use App\Models\centro_costo;
 use App\Models\orden_trabajo;
+use App\Models\fondo;
+use Carbon\Carbon;
 
 class UsuarioController extends Controller
 {
@@ -167,6 +169,7 @@ class UsuarioController extends Controller
         $banco_cuenta = banco_cuentas::pluck('nombre','id');
         $departamento = departamentos::pluck('nombre','id');
         $tipo_ot = orden_trabajo_tipo::pluck('nombre','id');
+        $fondo = fondo::pluck('nombre','id');
         $centro_costo = centro_costo::selectRaw("CONCAT(nombre, ' - (', codigo, ')') AS nombre_completo, id")
                 ->pluck('nombre_completo', 'id');
         $usu = usuario::where('estado_id', 1)
@@ -194,7 +197,8 @@ class UsuarioController extends Controller
         'banco_cuenta',
         'departamento',
         'tipo_ot',
-        'centro_costo'
+        'centro_costo',
+        'fondo'
     ));
     }
 
@@ -424,18 +428,34 @@ class UsuarioController extends Controller
 
             $ot = new orden_trabajo();
             $ot->usuario_id = $id;
-            $ot->fecha_inicio = $request->$fecha_inicio_ot;
-            $ot->fecha_termino = $request->$fecha_termino_ot;
-            $ot->tipo_orden_id = $request->$tipo_orden_id;
-            $ot->jornada = $request->$jornada;
-            $ot->valor_semana = $request->$valor_semana;
-            $ot->valor_semana_extension = $request->$valor_semana_extension;
-            $ot->valor_nocturno = $request->$valor_nocturno;
-            $ot->valor_finde_semana = $request->$valor_finde_semana;
-            $ot->monto_contrato = $request->$monto_contrato;
-            $ot->fondo_id = $request->$fondo_id;
-            $ot->profesion_id = $request->$profesion_id;
-          
+            $ot->fecha_inicio = $request->fecha_inicio_ot;
+            $ot->fecha_termino = $request->fecha_termino_ot;
+            $ot->tipo_orden_id = $request->tipo_orden_id;
+            $ot->jornada = $request->jornada;
+            $ot->valor_semana = $request->valor_semana;
+            $ot->valor_semana_extension = $request->valor_semana_extension;
+            $ot->valor_nocturno = $request->valor_nocturno;
+            $ot->valor_finde_semana = $request->valor_finde_semana;
+            $ot->monto_contrato = $request->monto_contrato;
+            $ot->fondo_id = $request->fondo_ot_id;
+            $ot->profesion_id = $request->profesion_ot_id;
+            $ot->prevision_id = $request->prevision_ot_id;
+            $ot->afp_id = $request->afp_ot_id;
+            $ot->direccion_ot = $request->direccion_ot;
+            $ot->telefono_ot = $request->telefono_ot;
+            $ot->reemplazante_id = $request->reemplazante_id;
+            $ot->motivo_reemplazo = $request->motivo_reemplazo;
+            $ot->usuario_crea_id = 17096233;  //debe ir usuario logeado
+            $ot->departamento_id = $request->departamento_id;
+            $ot->centro_costo_id = $request->centro_costo_id;
+            $ot->nivel = $request->nivel_ot;
+            $ot->estado_id = 1;
+            $ot->save();
+
+            $usuario = usuario::findOrFail($id);
+            $usuario->nivel= $request->nivel_ot;
+            $usuario->save();
+
 
            return response()->json(['message' => 'Orden de Trabajo guardada con éxito'], 200);
 
@@ -454,6 +474,100 @@ class UsuarioController extends Controller
                 ], 500);
         }
     }
+
+    public function getAsistencia(Request $request)
+    {
+        $usuarioId = $request->usuario;
+        $fechaInicio = Carbon::parse($request->fecha_inicio)->startOfDay();
+        $fechaTermino = Carbon::parse($request->fecha_termino)->endOfDay();
+
+        $registrosPorFecha = [];
+
+        //--- Permisos ---
+        $permisos = Permiso::where('usuario_id', $usuarioId)
+        ->where('permiso_estado_id', 2)
+        ->where(function ($query) use ($fechaInicio, $fechaTermino) {
+            $query->whereBetween('fecha_inicio', [$fechaInicio, $fechaTermino])
+                  ->orWhereBetween('fecha_termino', [$fechaInicio, $fechaTermino])
+                  ->orWhere(function ($query) use ($fechaInicio, $fechaTermino) {
+                      $query->where('fecha_inicio', '<=', $fechaInicio)
+                            ->where('fecha_termino', '>=', $fechaTermino);
+                  });
+        })->get();
+
+        foreach ($permisos as $permiso) {
+            $current = $permiso->fecha_inicio->copy();
+            while ($current <= $permiso->fecha_termino) {
+                if ($current >= $fechaInicio && $current <= $fechaTermino) {
+                    $fecha = $current->toDateString();
+                    $registrosPorFecha[$fecha][] = [
+                        'tipo' => 'Permiso',
+                        'detalle' => strtolower($permiso->tipo_permiso->nombre),
+                        'reloj' => 'Autorización RRHH'
+                    ];
+                }
+                $current->addDay();
+            }
+        }
+
+        // --- Vacaciones ---
+        $vacaciones = feriado_legal::where('usuario_id', $usuarioId)
+            ->where('estado_id', 2)
+            ->where(function ($query) use ($fechaInicio, $fechaTermino) {
+                $query->whereBetween('fecha_inicio', [$fechaInicio, $fechaTermino])
+                    ->orWhereBetween('fecha_termino', [$fechaInicio, $fechaTermino])
+                    ->orWhere(function ($query) use ($fechaInicio, $fechaTermino) {
+                        $query->where('fecha_inicio', '<=', $fechaInicio)
+                            ->where('fecha_termino', '>=', $fechaTermino);
+                    });
+            })
+            ->get();
+
+        foreach ($vacaciones as $vacacion) {
+            $current = $vacacion->fecha_inicio->copy();
+            while ($current <= $vacacion->fecha_termino) {
+                if ($current >= $fechaInicio && $current <= $fechaTermino) {
+                    $fecha = $current->toDateString();
+                    $registrosPorFecha[$fecha][] = [
+                        'tipo' => 'Vacaciones',
+                        'detalle' => 'Vacaciones',
+                        'reloj' => 'RRHH'
+                    ];
+                }
+                $current->addDay();
+            }
+        }
+
+        //--- licencia medica ---
+        $licencias = licencia_medica::where('usuario_id', $usuarioId)
+        ->where(function ($query) use ($fechaInicio, $fechaTermino) {
+            $query->whereBetween('fecha_inicio', [$fechaInicio, $fechaTermino])
+                ->orWhereBetween('fecha_termino', [$fechaInicio, $fechaTermino])
+                ->orWhere(function ($query) use ($fechaInicio, $fechaTermino) {
+                    $query->where('fecha_inicio', '<=', $fechaInicio)
+                            ->where('fecha_termino', '>=', $fechaTermino);
+                });
+        })
+        ->get();
+
+        foreach ($licencias as $licencia) {
+            $current = $licencia->fecha_inicio->copy();
+            while ($current <= $licencia->fecha_termino) {
+                if ($current >= $fechaInicio && $current <= $fechaTermino) {
+                    $fecha = $current->toDateString();
+                    $registrosPorFecha[$fecha][] = [
+                        'tipo' => 'Licencia',
+                        'detalle' => 'Licencia médica',
+                        'reloj' => 'RRHH'
+                    ];
+                }
+                $current->addDay();
+            }
+        }
+                
+        return response()->json($registrosPorFecha);
+    }
+
 
     /**
      * Remove the specified resource from storage.

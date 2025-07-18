@@ -27,12 +27,11 @@ return new class extends Migration
             $table->integer('profesion_id')->unsigned();
             $table->integer('prevision_id')->unsigned();
             $table->integer('afp_id')->unsigned();
-            $table->string('direcion_ot', 150);
+            $table->string('direccion_ot', 150);
             $table->string('telefono_ot', 150);
             $table->integer('reemplazante_id')->unsigned()->nullable();
-            $table->string('motivo_reemplazo', 150);
+            $table->string('motivo_reemplazo', 150)->nullable();
             $table->integer('usuario_crea_id')->unsigned();
-            $table->date('fecha_creacion');
             $table->integer('departamento_id')->unsigned();
             $table->integer('centro_costo_id')->unsigned()->nullable();
             $table->tinyInteger('nivel')->unsigned()->nullable();
@@ -47,6 +46,8 @@ return new class extends Migration
             $table->foreign('usuario_crea_id')->references('id')->on('usuarios');
             $table->foreign('departamento_id')->references('id')->on('departamentos');
             $table->foreign('estado_id')->references('id')->on('orden_trabajo_estados');
+            $table->foreign('centro_costo_id')->references('id')->on('centro_costos');
+            $table->foreign('fondo_id')->references('id')->on('fondos');
             $table->timestamps();
         });
     }

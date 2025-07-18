@@ -13,5 +13,7 @@ Route::prefix('admin')->group(function () {
         Route::post('usuarios/{usu}/licencia',[UsuarioController::class,'setLicenciaMedica'])->name('usuarios.licencia');
         Route::post('usuarios/{usu}/anotacion',[UsuarioController::class,'setAnotacion'])->name('usuarios.anotacion');
         Route::post('usuarios/{usu}/cuenta',[UsuarioController::class,'setCuentaBancaria'])->name('usuarios.cbancaria');
+        Route::post('usuarios/{usu}/ot',[UsuarioController::class,'setOrdenTrabajo'])->name('usuarios.ot');
+        Route::post('usuarios/asistencia',[UsuarioController::class,'getAsistencia'])->name('usuarios.asistencia');
         Route::resource('usuarios',UsuarioController::class);
 });

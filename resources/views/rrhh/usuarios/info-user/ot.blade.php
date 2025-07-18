@@ -1,4 +1,4 @@
-<form class="p-4 border rounded bg-light" id="orden_trabajo" method="POST" action="#">
+<form class="p-4 border rounded bg-light" id="form_orden_trabajo" method="POST" action="#">
     {{ csrf_field() }}
     <h4 class="mb-4 text-center">Registro de Orden de Trabajo</h4>
 
@@ -49,7 +49,7 @@
         <div class="col-md-2">
             <label class="form-label"><i class="bi bi-bar-chart-steps"></i> Nivel</label>
             <div class="form-group position-relative has-icon-right">
-                <input type="number" class="form-control" name="nivel" autocomplete="off" value="{{ $usuario->nivel }}" min="1">
+                <input type="number" class="form-control" name="nivel_ot" autocomplete="off" value="{{ $usuario->nivel }}" min="1">
                 <div class="form-control-icon">
                     <i class="bi bi-bar-chart-steps"></i>
                 </div>
@@ -107,12 +107,11 @@
         <!-- Fondo ID -->
         <div class="col-md-4 conditional-field" id="fondo_ot">
             <label class="form-label"><i class="bi bi-wallet"></i> Fondo</label>
-            <select name="fondo_id" class="form-select">
+            <select name="fondo_ot_id" class="form-select">
                 <option value="">--Seleccione--</option>
-                {{-- Assuming $fondos is passed from the backend --}}
-                {{-- @foreach($fondos as $key => $value)
+                @foreach($fondo as $key => $value)
                     <option value="{{ $key }}"> {{ $value }}</option>
-                @endforeach --}}
+                @endforeach 
             </select>
         </div>
 
@@ -139,7 +138,7 @@
         <!-- Centro de Costo -->
         <div class="col-md-4">
             <label class="form-label"><i class="bi bi-cash-stack"></i> Centro de Costo</label>
-            <select name="centro_costo_id" class="form-select">
+            <select name="centro_costo_id" class="form-select" required>
                 <option value="">--Seleccione--</option>
                 @foreach($centro_costo as $key => $value)
                 <option value="{{ $key }}"> {{ $value }}</option>
@@ -149,7 +148,7 @@
         <!-- Profesión -->
         <div class="col-md-4">
             <label class="form-label"><i class="bi bi-mortarboard"></i> Profesión</label>
-            <select name="profesion_id" class="form-select" required>
+            <select name="profesion_ot_id" class="form-select" required>
                 <option value="">--Seleccione--</option>
                  @foreach($profesion as $key => $value)
                     <option value="{{ $key }}" {{ $usuario->profesion_id == $key ? 'selected' : '' }}> {{ $value }}</option>
@@ -160,7 +159,7 @@
         <!-- Previsión -->
         <div class="col-md-4">
             <label class="form-label"><i class="bi bi-shield-lock"></i> Previsión</label>
-            <select name="prevision_id" class="form-select" required>
+            <select name="prevision_ot_id" class="form-select" required>
                 <option value="">--Seleccione--</option>
                 @foreach($prevision as $key => $value)
                     <option value="{{ $key }}" {{ $usuario->prevision_id == $key ? 'selected' : '' }}> {{ $value }}</option>
@@ -171,7 +170,7 @@
         <!-- AFP -->
         <div class="col-md-4">
             <label class="form-label"><i class="bi bi-building"></i> AFP</label>
-            <select name="afp_id" class="form-select" required>
+            <select name="afp_ot_id" class="form-select" required>
                 <option value="">--Seleccione--</option>
                 @foreach($afp as $key => $value)
                     <option value="{{ $key }}" {{ $usuario->afp_id == $key ? 'selected' : '' }}> {{ $value }}</option>
@@ -183,7 +182,7 @@
         <div class="col-md-8">
             <label class="form-label"><i class="bi bi-geo-alt"></i> Dirección OT</label>
             <div class="form-group position-relative has-icon-right">
-                <input type="text" class="form-control" name="direcion_ot" autocomplete="off" value="{{ $usuario->direccion }}" required>
+                <input type="text" class="form-control" name="direccion_ot" autocomplete="off" value="{{ $usuario->direccion }}" required>
                 <div class="form-control-icon">
                     <i class="bi bi-geo-alt"></i>
                 </div>
