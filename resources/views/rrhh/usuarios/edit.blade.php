@@ -185,7 +185,7 @@
                 <section class="section">
                     <div class="card">
                         <div class="card-header">
-                            <h4 class="card-title">Editar Usuario</h4>
+                            <h4 class="card-title">Usuario - {{ $usuario->nombre_completo }}</h4>
                         </div>
                     <div class="card-body">
                         <ul class="nav nav-tabs" id="myTab" role="tablist">

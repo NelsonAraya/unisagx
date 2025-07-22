@@ -2,9 +2,19 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsuarioController;
+
 Route::get('/', function () {
+    return view('auth.login');
+})->name('login');
+
+Route::post('/login',[UsuarioController::class,'login'])
+	->name('usuarios.login');
+    
+Route::post('logout',[UsuarioController::class,'logout'])->name('logout');    
+
+Route::get('/home', function () {
     return view('home');
-});
+})->name('home')->middleware('auth');
 
 Route::prefix('admin')->group(function () {
         Route::get('usuarios/all',[UsuarioController::class,'getUsuariosData'])->name('usuarios.all');

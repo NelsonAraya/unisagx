@@ -3,8 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class usuario extends Model
+class usuario extends Authenticatable
 {
     public function rutUsuario() {
       return $this->id. '-' . $this->dv;
@@ -21,4 +22,9 @@ class usuario extends Model
     public function cuentas_bancarias(){
         return $this->hasMany(cuenta_usuarios::class, 'usuario_id', 'id'); 
     }
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 }

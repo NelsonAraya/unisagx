@@ -30,6 +30,9 @@ use App\Models\centro_costo;
 use App\Models\orden_trabajo;
 use App\Models\fondo;
 use Carbon\Carbon;
+use App\Models\asistencia_usuarios;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class UsuarioController extends Controller
 {
@@ -105,6 +108,7 @@ class UsuarioController extends Controller
             $usuario->email_institucional = strtolower($request->email_institucional);
             $usuario->estado_id = 1;
             $usuario->nivel = 15;
+            $usuario->password =  Hash::make($numero);
 
             $usuario->save();
             return response()->json(['message' => 'Usuario guardado con éxito'], 200);
@@ -367,7 +371,7 @@ class UsuarioController extends Controller
 
            $anotacion = new anotaciones();
            $anotacion->usuario_id = $id;
-           $anotacion->calificador_id = 17096233; //despues hay que pasarla por el usuario logeado
+           $anotacion->calificador_id = Auth::user()->id;
            $anotacion->anotacion_tipo_id = $request->anotacion_tipo_id;
            $anotacion->fecha_anotacion = $request->fecha_anotacion;
            $anotacion->anotacion = $request->anotacion;
@@ -445,7 +449,7 @@ class UsuarioController extends Controller
             $ot->telefono_ot = $request->telefono_ot;
             $ot->reemplazante_id = $request->reemplazante_id;
             $ot->motivo_reemplazo = $request->motivo_reemplazo;
-            $ot->usuario_crea_id = 17096233;  //debe ir usuario logeado
+            $ot->usuario_crea_id = Auth::user()->id;
             $ot->departamento_id = $request->departamento_id;
             $ot->centro_costo_id = $request->centro_costo_id;
             $ot->nivel = $request->nivel_ot;
@@ -564,8 +568,71 @@ class UsuarioController extends Controller
                 $current->addDay();
             }
         }
+
+        // --- Asistencia ---
+        $asistencias = asistencia_usuarios::with(['tipo', 'reloj']) // para evitar N+1 queries
+            ->where('usuario_id', $usuarioId)
+            ->whereBetween('fecha', [$fechaInicio->toDateString(), $fechaTermino->toDateString()])
+            ->get();
+
+        foreach ($asistencias as $registro) {
+            $fecha = $registro->fecha;
+
+            $registrosPorFecha[$fecha][] = [
+                'tipo' => $registro->tipo->nombre ?? 'Tipo desconocido',
+                'hora' => $registro->hora,
+                'reloj' => $registro->reloj->nombre ?? 'Reloj desconocido'
+            ];
+        }
+
+
+
+
                 
         return response()->json($registrosPorFecha);
+    }
+
+    public function login(Request $request){
+
+        
+         $inputUsuario = trim($request->usuario);
+
+        if (strpos($inputUsuario, '@') === false) {
+            // Asumimos que es RUT, limpiamos puntos y separadores
+            $inputUsuario = preg_replace('/[^0-9kK-]/', '', $inputUsuario); // Solo números, k y guión
+            $inputUsuario = explode('-', $inputUsuario)[0]; // Solo la parte numérica antes del guión
+        }
+        
+        
+        
+        $user = usuario::where(function($query) use ($inputUsuario) {
+                    $query->where('id', $inputUsuario)
+                        ->orWhere('email', $inputUsuario);
+                })
+                ->where('estado_id', 1)
+                ->first();
+
+        if (!$user) {
+
+            return back()->withErrors(['usuario' => 'Usuario no encontrado o inactivo.'])->withInput();
+        }
+
+        if (!Hash::check($request->password, $user->password)) {
+           
+            return back()->withErrors(['password' => 'La contraseña es incorrecta.'])->withInput();
+        }
+
+        Auth::login($user);
+
+        return redirect()->route('home');
+    }
+
+    public function logout(){
+
+        Auth::logout();
+
+        return redirect('/');
+
     }
 
 

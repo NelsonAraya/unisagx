@@ -32,6 +32,7 @@ return new class extends Migration
             $table->string('email_institucional', 150)->nullable();
             $table->enum('encasillado', ['S', 'N'])->default('N');
             $table->tinyInteger('nivel');
+            $table->string('password');
             // Foreign keys
             $table->foreign('sexo_id')->references('id')->on('sexos');
             $table->foreign('profesion_id')->references('id')->on('profesiones');
